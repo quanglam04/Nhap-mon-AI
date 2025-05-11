@@ -8,16 +8,18 @@ Vương Đức Trọng
 
 2. Chạy môi trường ảo
 
-# source .venv/Scripts/activate
+# .venv\Scripts\activate.bat
 
 3. Cài đặt các thư viện cần thiết
 
 # pip install numpy sounddevice speechrecognition
 
-# pip install opencv-python sounddevice numpy speechrecognition
+# pip install opencv-python
 
 # pip install pyaudio
 
 # pip install pillow
 
 # pip install PyQt5 PyQtWebEngine
+
+# pip install opencv-contrib-python
