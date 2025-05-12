@@ -74,5 +74,5 @@ Dự án sử dụng các công nghệ và thư viện sau:
    ```
 5. Chạy
    ```
-   python color.py
+   python main.py
    ```
