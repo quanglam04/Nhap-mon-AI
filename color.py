@@ -1,7 +1,6 @@
 import numpy as np
 import cv2
 import speech_recognition as sr
-from PIL import Image
 from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout
 from PyQt5.QtWebEngineWidgets import QWebEngineView
 from PyQt5.QtCore import QUrl
