@@ -22,4 +22,6 @@ Vương Đức Trọng
 
 # pip install PyQt5 PyQtWebEngine
 
-# pip install opencv-contrib-python
+# pip install opencv-contrib-python ytmusicapi
+
+# pip install fer moviepy==1.0.3 tensorflow
