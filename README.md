@@ -4,7 +4,6 @@
 
 Ứng dụng **Face & Voice Search** là một dự án sáng tạo cho phép người dùng tương tác với các nền tảng trực tuyến (YouTube, Facebook, Google, Instagram, YouTube Music) thông qua nhận diện khuôn mặt và giọng nói. Ứng dụng sử dụng webcam để phát hiện khuôn mặt, nhận diện cảm xúc và điều khiển tìm kiếm bằng lệnh thoại, mang lại trải nghiệm người dùng độc đáo và hiện đại.
 
-Dự án được phát triển bởi **Vương Đức Trọng**.
 
 ## Chức năng
 
