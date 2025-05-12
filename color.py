@@ -1,3 +1,5 @@
+from random import random
+
 import numpy as np
 import cv2
 import speech_recognition as sr
@@ -5,8 +7,11 @@ from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QHB
 from PyQt5.QtWebEngineWidgets import QWebEngineView
 from PyQt5.QtCore import QUrl
 from ytmusicapi import YTMusic
+import threading
 import sys
 
+
+possible_emotions = ["hạnh phúc", "buồn", "giận dữ", "ngạc nhiên", "sợ hãi", "khinh thường", "vui"]
 # Đường dẫn các logo
 icons = {
     "youtube": "C:/Users/Lenovo/Documents/face_noice_search/aipython/data/youtube.png",
@@ -38,7 +43,7 @@ def recognize_speech(prompt="🎤 Hãy nói..."):
         try:
             audio = recognizer.listen(source, timeout=5, phrase_time_limit=5)
             text = recognizer.recognize_google(audio, language="vi-VN").lower()
-            text = text.replace(' ', '')  # Loại bỏ dấu cách nếu có
+            text = text.replace(' ', '')
             print("✅ Bạn đã nói:", text)
             return text
         except:
@@ -46,20 +51,15 @@ def recognize_speech(prompt="🎤 Hãy nói..."):
             return None
 
 
-
-
 def overlay_icons(frame):
     for name, path in icons.items():
         icon = cv2.imread(path, cv2.IMREAD_UNCHANGED)
         if icon is None:
             continue
-
         x, y = icon_positions[name]
         icon = cv2.resize(icon, (80, 80))
-
         if y + 80 > frame.shape[0] or x + 80 > frame.shape[1]:
             continue
-
         if icon.shape[2] == 4:
             alpha_s = icon[:, :, 3] / 255.0
             alpha_l = 1.0 - alpha_s
@@ -73,13 +73,13 @@ def overlay_icons(frame):
 
 
 def handle_platform(platform):
-    platform = platform.replace(' ', '').lower()  # Xử lý dấu cách và chuyển về chữ thường
+    platform = platform.replace(' ', '').lower()
     if platform == "youtube":
         return "🎶 Bạn muốn tìm video gì trên YouTube?"
     elif platform == "facebook":
         return "👤 Bạn muốn tìm ai trên Facebook?"
-    elif platform == "youtubemusic":  # Đảm bảo so sánh đúng tên
-        return "😊 Bạn đang cảm thấy thế nào? (vui, buồn, phấn khích, thư giãn...)"
+    elif platform == "youtubemusic":
+        return None  # Sử dụng cảm xúc
     elif platform == "google":
         return "🔍 Bạn muốn tìm gì trên Google?"
     elif platform == "instagram":
@@ -87,7 +87,6 @@ def handle_platform(platform):
     else:
         print("⚠️ Nền tảng không được hỗ trợ.")
         return None
-
 
 
 def get_url(platform, query):
@@ -103,6 +102,22 @@ def get_url(platform, query):
         return f"https://www.instagram.com/{query.replace(' ', '')}/" if query else "https://www.instagram.com"
     return None
 
+
+def detect_emotion_thread(result_holder):
+    from fer import FER  # Import tại đây để tránh lỗi DLL của TensorFlow
+    detector = FER()
+    cap = cv2.VideoCapture(0)
+    while True:
+        ret, frame = cap.read()
+        if not ret:
+            break
+        results = detector.detect_emotions(frame)
+        if results:
+            emotion, score = detector.top_emotion(frame)
+            if emotion:
+                result_holder.append(emotion)
+                break
+    cap.release()
 
 
 class MainWindow(QMainWindow):
@@ -152,10 +167,7 @@ class MainWindow(QMainWindow):
                 if face_detected:
                     self.selected_platform = recognize_speech(
                         "🎤 Hãy nói tên nền tảng bạn muốn chọn (youtube, facebook, google, instagram, youtubemusic)...")
-
-                    # Kiểm tra xem nền tảng đã được chọn hay chưa:
                     if self.selected_platform:
-                        # Chỉnh sửa đoạn mã nhận diện nền tảng:
                         if self.selected_platform in icons or self.selected_platform.replace(' ', '').lower() in icons:
                             print(f"🌐 Đã chọn {self.selected_platform}")
                             self.search_prompt = handle_platform(self.selected_platform)
@@ -167,7 +179,20 @@ class MainWindow(QMainWindow):
                     print("⚠️ Vui lòng để khuôn mặt xuất hiện trước webcam để chọn nền tảng.")
             elif key == ord('f') and self.selected_platform:
                 if face_detected:
-                    if self.search_prompt:
+                    if self.selected_platform == "youtubemusic":
+                        print("😊 Đang nhận diện cảm xúc...")
+                        emotion_result = []
+                        t = threading.Thread(target=detect_emotion_thread, args=(emotion_result,))
+                        t.start()
+                        t.join()
+                        emotion = emotion_result[0] if emotion_result else random.choice(possible_emotions)
+                        url = get_url(self.selected_platform, emotion)
+                        if url:
+                            self.browser.setUrl(QUrl(url))
+                            print(f"🎵 Tìm nhạc phù hợp với cảm xúc: {emotion}")
+                        else:
+                            print("⚠️ Không tìm thấy nội dung phù hợp.")
+                    elif self.search_prompt:
                         query = recognize_speech(self.search_prompt)
                         url = get_url(self.selected_platform, query)
                         if url:
